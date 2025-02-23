@@ -1,2 +1,2 @@
 # staz
- 📊 A statistical library for C
+ 📊 A portable statistical library for C
