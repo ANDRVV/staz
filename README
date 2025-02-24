@@ -1,23 +1,14 @@
-A portable, lightweight C library for 
-blazing fast statistical computations on numeric arrays.
+Staz
+====
+
+Staz is a portable, lightweight C library for blazing fast statistical
+computations on numeric arrays.
+
+Documentation can be found at:
+
+    https://github.com/ANDRVV/staz/tree/main/docs
 
 The only file is `staz.h`.
-
-Public functions:
- - sum
- - prod
- - median
- - arithmetic_mean
- - geometric_mean
- - harmonic_mean
- - extreme_mean
- - variance
- - std_deviation
- - min_value
- - max_value
- - range
-
 New functions are provided soon.
-Docs can be found at completion of Staz.
 
 Copyright (c) 2025 Andrea Vaccaro
