@@ -35,7 +35,8 @@
 #endif
 
 // Sum reciprocals function for integer values.
-static int _sum_recp(int* nums, int len) {
+static int
+_sum_recp(int* nums, int len) {
     int vsum = 0;
 
     // sum all values of array
@@ -47,7 +48,8 @@ static int _sum_recp(int* nums, int len) {
 }
 
 // Sum reciprocals function for double values.
-static double _sum_recp(double* nums, int len) {
+static double
+_sum_recp(double* nums, int len) {
     double vsum = 0;
 
     // sum all values of array
@@ -59,7 +61,8 @@ static double _sum_recp(double* nums, int len) {
 }
 
 // Sum function for integer values.
-int sum(int* nums, int len) {
+int
+sum(int* nums, int len) {
     int vsum = 0;
 
     // sum all values of array
@@ -71,7 +74,8 @@ int sum(int* nums, int len) {
 }
 
 // Sum function for double values.
-double sum(double* nums, int len) {
+double
+sum(double* nums, int len) {
     double vsum = 0;
 
     // sum all values of array
@@ -83,7 +87,8 @@ double sum(double* nums, int len) {
 }
 
 // Prod function for integer values.
-int prod(int* nums, int len) {
+int
+prod(int* nums, int len) {
     int product = 1;
 
     // multiplies all values of array
@@ -95,7 +100,8 @@ int prod(int* nums, int len) {
 }
 
 // Prod function for double values.
-double prod(double* nums, int len) {
+double
+prod(double* nums, int len) {
     double product = 1;
 
     // multiplies all values of array
@@ -109,7 +115,8 @@ double prod(double* nums, int len) {
 // Median value for integer values.
 // Parameter "int* nums" must be sorted.
 // You can sort with sort()
-double median(int* nums, int len) {
+double
+median(int* nums, int len) {
     // if have a single middle value return it
     if (len % 2 != 0) {
         return nums[len / 2];
@@ -125,7 +132,8 @@ double median(int* nums, int len) {
 // Median value for double values.
 // Parameter "double* nums" must be sorted.
 // You can sort with sort()
-double median(double* nums, int len) {
+double
+median(double* nums, int len) {
     // if have a single middle value return it
     if (len % 2 != 0) {
         return nums[len / 2];
@@ -139,51 +147,60 @@ double median(double* nums, int len) {
 }
 
 // Arithmetic mean for integer values.
-double arithmetic_mean(int* nums, int len) {
+inline double
+arithmetic_mean(int* nums, int len) {
     return sum(nums, len) / len;
 }
 
 // Arithmetic mean for double values.
-double arithmetic_mean(double* nums, int len) {
+inline double
+arithmetic_mean(double* nums, int len) {
     return sum(nums, len) / len;
 }
 
 // Geometric mean for integer values.
-double geometric_mean(int* nums, int len) {
+inline double
+geometric_mean(int* nums, int len) {
     return sqrti(len, prod(nums, len));
 }
 
 // Geometric mean for double values.
-double geometric_mean(double* nums, int len) {
+inline double
+geometric_mean(double* nums, int len) {
     return sqrti(len, prod(nums, len));
 }
 
 // Harmonic mean for integer values.
-double harmonic_mean(int* nums, int len) {
+inline double
+harmonic_mean(int* nums, int len) {
     return len / _sum_recp(nums, len);
 }
 
 // Harmonic mean for double values.
-double harmonic_mean(double* nums, int len) {
+inline double
+harmonic_mean(double* nums, int len) {
     return len / _sum_recp(nums, len);
 }
 
 // Mean of extreme integer values.
 // Parameter "int* nums" must be sorted.
 // You can sort with sort()
-double extreme_mean(int* nums, int len) {
+inline double
+extreme_mean(int* nums, int len) {
     return (nums[0] + nums[len - 1]) / 2.0;
 }
 
 // Mean of extreme double values.
 // Parameter "double* nums" must be sorted.
 // You can sort with sort()
-double extreme_mean(double* nums, int len) {
+inline double
+extreme_mean(double* nums, int len) {
     return (nums[0] + nums[len - 1]) / 2.0;
 }
 
 // Variance for integer values.
-double variance(int* nums, int len) {
+double
+variance(int* nums, int len) {
     double mean = arithmetic_mean(nums, len);
 
     // numerator of variance
@@ -198,7 +215,8 @@ double variance(int* nums, int len) {
 
 
 // Variance for double values.
-double variance(double* nums, int len) {
+double
+variance(double* nums, int len) {
     double mean = arithmetic_mean(nums, len);
 
     // numerator of variance
@@ -212,17 +230,20 @@ double variance(double* nums, int len) {
 }
 
 // Standard deviation for integer values.
-double std_deviation(int* nums, int len) {
+inline double
+std_deviation(int* nums, int len) {
     return sqrt(variance(nums, len));
 }
 
 // Standard deviation for double values.
-double std_deviation(double* nums, int len) {
+inline double
+std_deviation(double* nums, int len) {
     return sqrt(variance(nums, len));
 }
 
 // Standard deviation for integer values.
-int min_value(int* nums, int len) {
+int
+min_value(int* nums, int len) {
     int min = nums[0];
     for (int i = 1; i < len; i++) {
         if (nums[i] < min) min = nums[i];
@@ -231,7 +252,8 @@ int min_value(int* nums, int len) {
 }
 
 // Min value for double values.
-double min_value(double* nums, int len) {
+double
+min_value(double* nums, int len) {
     double min = nums[0];
     for (int i = 1; i < len; i++) {
         if (nums[i] < min) min = nums[i];
@@ -240,7 +262,8 @@ double min_value(double* nums, int len) {
 }
 
 // Max value for integer values.
-int max_value(int* nums, int len) {
+int
+max_value(int* nums, int len) {
     int max = nums[0];
     for (int i = 1; i < len; i++) {
         if (nums[i] > max) max = nums[i];
@@ -249,7 +272,8 @@ int max_value(int* nums, int len) {
 }
 
 // Max value for double values.
-double max_value(double* nums, int len) {
+double
+max_value(double* nums, int len) {
     double max = nums[0];
     for (int i = 1; i < len; i++) {
         if (nums[i] > max) max = nums[i];
@@ -259,13 +283,15 @@ double max_value(double* nums, int len) {
 
 // Range for integer values.
 // Diff of max and min value.
-int range(int* nums, int len) {
+inline int
+range(int* nums, int len) {
     return max_value(nums, len) - min_value(nums, len);
 }
 
 // Range for double values.
 // Diff of max and min value.
-double range(double* nums, int len) {
+inline double
+range(double* nums, int len) {
     return max_value(nums, len) - min_value(nums, len);
 }
 
