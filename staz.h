@@ -295,4 +295,26 @@ range(double* nums, int len) {
     return max_value(nums, len) - min_value(nums, len);
 }
 
+struct lineEquation {
+    double m;
+    double q;
+};
+
+// Linear regression function for double values.
+lineEquation
+linear_regression(double* x, double* y, int len) {
+    double sum_x = sum(x, len), sum_y = sum(y, len), sum_xy = 0, sum_x_sq = 0;
+
+    for (int i = 0; i < len; i++) {
+        sum_xy += x[i] * y[i];
+        sum_x_sq += x[i] * x[i];
+    }
+
+    double m = (len * sum_xy - sum_x * sum_y) / (len * sum_x_sq - sum_x * sum_x);
+    double q = (sum_y - m * sum_x) / len;
+
+    return lineEquation{m, q};
+}
+
+
 #endif /* STAZ_H */
