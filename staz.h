@@ -7,25 +7,44 @@
  * computations on numeric arrays.
  * 
  * This is the main and only file of this library.
- * Documentation are provided on /docs folder.
+ * Documentation is provided in the /docs folder.
  */
 
-#ifndef STAZ_H
-#define STAZ_H
-
-#include <stdio.h>
-#include <math.h>
-#include <errno.h>
-
-// Compute a root of customizable index
+ #ifndef STAZ_H
+ #define STAZ_H
+ 
+ #include <stdio.h>
+ #include <math.h>
+ #include <errno.h>
+ 
+/**
+ * @brief Compute a root of customizable index
+ * @param i The index of the root to compute
+ * @param x The value to compute the root of
+ * @return The i-th root of x
+ */
 #define sqrti(i, x) (pow(x, 1.0 / i))
 
 #ifdef __cplusplus
-    #define size_t ssize_t
+    #define size_t std::size_t
 #endif
 
 /* --- PRIVATE METHODS --- */
 
+/**
+ * @brief Calculates the sum of reciprocals of all elements in an array
+ * 
+ * @param nums Pointer to the array of double values
+ * @param len Length of the array
+ * 
+ * @return double The sum of reciprocals (1/x) of all elements
+ *         NAN if nums is NULL, len is 0, or if any element is 0
+ * 
+ * @note Sets errno to:
+ *       - EINVAL if nums is NULL or len is 0
+ *       - ERANGE if any element is 0
+ *       - 0 if operation succeeds
+ */
 static double
 _sum_recp(const double* nums, size_t len) {
     if (!nums || len == 0) {
@@ -37,7 +56,7 @@ _sum_recp(const double* nums, size_t len) {
 
     double vsum = 0;
 
-    // sum all values of array
+    // Sum the reciprocals of all array values
     for (size_t i = 0; i < len; i++) {
         if (nums[i] == 0) {
             errno = ERANGE;
@@ -52,7 +71,19 @@ _sum_recp(const double* nums, size_t len) {
 
 /* --- SHARED METHODS --- */
 
-// Sum.
+/**
+ * @brief Calculates the sum of all elements in an array
+ * 
+ * @param nums Pointer to the array of double values
+ * @param len Length of the array
+ * 
+ * @return double The sum of all elements in the array
+ *         NAN if nums is NULL or len is 0
+ * 
+ * @note Sets errno to:
+ *       - EINVAL if nums is NULL or len is 0
+ *       - 0 if operation succeeds
+ */
 double
 sum(const double* nums, size_t len) {
     if (!nums || len == 0) {
@@ -64,7 +95,7 @@ sum(const double* nums, size_t len) {
 
     double vsum = 0;
 
-    // sum all values of array
+    // Sum all values of array
     for (size_t i = 0; i < len; i++) {
         vsum += nums[i];
     }
@@ -72,7 +103,19 @@ sum(const double* nums, size_t len) {
     return vsum;
 }
 
-// Sum of quadratic values.
+/**
+ * @brief Calculates the sum of squares of all elements in an array
+ * 
+ * @param nums Pointer to the array of double values
+ * @param len Length of the array
+ * 
+ * @return double The sum of squares of all elements
+ *         NAN if nums is NULL or len is 0
+ * 
+ * @note Sets errno to:
+ *       - EINVAL if nums is NULL or len is 0
+ *       - 0 if operation succeeds
+ */
 double
 quadratic_sum(const double* nums, size_t len) {
     if (!nums || len == 0) {
@@ -84,7 +127,7 @@ quadratic_sum(const double* nums, size_t len) {
 
     double vsum = 0;
 
-    // sum all values of array
+    // Sum squares of all values in array
     for (size_t i = 0; i < len; i++) {
         vsum += nums[i] * nums[i];
     }
@@ -92,7 +135,20 @@ quadratic_sum(const double* nums, size_t len) {
     return vsum;
 }
 
-// Prod.
+/**
+ * @brief Calculates the product of all elements in an array
+ * 
+ * @param nums Pointer to the array of double values
+ * @param len Length of the array
+ * 
+ * @return double The product of all elements
+ *         NAN if nums is NULL or len is 0
+ * 
+ * @note Sets errno to:
+ *       - EINVAL if nums is NULL or len is 0
+ *       - 0 if operation succeeds
+ *       - Stops calculation early if product becomes 0
+ */
 double
 prod(const double* nums, size_t len) {
     if (!nums || len == 0) {
@@ -104,16 +160,28 @@ prod(const double* nums, size_t len) {
 
     double product = 1.0;
 
-    // multiplies all values of array
+    // Multiply all values of array
     for (size_t i = 0; i < len; i++) {
         product *= nums[i];
-        if (product == 0.0) break;
+        if (product == 0.0) break;  // Early termination optimization
     }
 
     return product;
 }
 
-// Min value.
+/**
+ * @brief Finds the minimum value in an array
+ * 
+ * @param nums Pointer to the array of double values
+ * @param len Length of the array
+ * 
+ * @return double The minimum value in the array
+ *         NAN if nums is NULL or len is 0
+ * 
+ * @note Sets errno to:
+ *       - EINVAL if nums is NULL or len is 0
+ *       - 0 if operation succeeds
+ */
 double
 min_value(const double* nums, size_t len) {
     if (!nums || len == 0) {
@@ -132,7 +200,19 @@ min_value(const double* nums, size_t len) {
     return min;
 }
 
-// Max value.
+/**
+ * @brief Finds the maximum value in an array
+ * 
+ * @param nums Pointer to the array of double values
+ * @param len Length of the array
+ * 
+ * @return double The maximum value in the array
+ *         NAN if nums is NULL or len is 0
+ * 
+ * @note Sets errno to:
+ *       - EINVAL if nums is NULL or len is 0
+ *       - 0 if operation succeeds
+ */
 double
 max_value(const double* nums, size_t len) {
     if (!nums || len == 0) {
@@ -153,22 +233,41 @@ max_value(const double* nums, size_t len) {
 
 /* --- PUBLIC METHODS --- */
 
+/**
+ * @brief Enumeration of different mean types supported by the library
+ */
 enum MeanType {
-    ARITHMETICAL, // arithmetic mean
-    GEOMETRICAL, // geometrical mean
-    HARMONICAL, // harmonic mean
-    QUADRATICAL, // quadratic mean
-    V_OF_EXTREME // mean of 2 extremes
+    ARITHMETICAL, /**< Arithmetic mean (average) */
+    GEOMETRICAL,  /**< Geometric mean (nth root of product) */
+    HARMONICAL,   /**< Harmonic mean (reciprocal of average of reciprocals) */
+    QUADRATICAL,  /**< Quadratic mean (root mean square) */
+    V_OF_EXTREME  /**< Mean of extreme values (min and max) */
 };
 
+/**
+ * @brief Structure representing a linear equation in the form y = mx + q
+ */
 struct lineEquation {
-    double m; // value of m for x
-    double q; // angular coefficient
+    double m; /**< Slope of the line (coefficient of x) */
+    double q; /**< Y-intercept (constant term) */
 };
 
-// Median value.
-// Parameter "nums" must be sorted.
-// You can sort with sort()
+/**
+ * @brief Calculates the median value of a sorted array
+ * 
+ * @param nums Pointer to the SORTED array of double values
+ * @param len Length of the array
+ * 
+ * @return double The median value of the array
+ *         - For odd-sized arrays: middle element
+ *         - For even-sized arrays: average of the two middle elements
+ *         - NAN if nums is NULL or len is 0
+ * 
+ * @note Sets errno to:
+ *       - EINVAL if nums is NULL or len is 0
+ *       - 0 if operation succeeds
+ *       - The array MUST be sorted before calling this function
+ */
 double
 median(const double* nums, size_t len) {
     if (!nums || len == 0) {
@@ -180,7 +279,7 @@ median(const double* nums, size_t len) {
 
     if (len == 1) return nums[0];
 
-    // if have a single middle value return it
+    // If we have a single middle value, return it
     if (len % 2 != 0) {
         return nums[len / 2];
     }
@@ -188,10 +287,30 @@ median(const double* nums, size_t len) {
     // Save middle as center of array
     const size_t middle = len / 2;
 
-    // else return middle of 2 values
+    // Else return average of the two middle values
     return (nums[middle - 1] + nums[middle]) / 2.0;
 }
 
+/**
+ * @brief Calculates different types of means for an array of values
+ * 
+ * @param mtype The type of mean to calculate (from MeanType enum)
+ * @param nums Pointer to the array of double values
+ * @param len Length of the array
+ * 
+ * @return double The calculated mean value
+ *         NAN if:
+ *         - nums is NULL or len is 0
+ *         - GEOMETRICAL mean with negative product
+ *         - HARMONICAL mean with any element = 0
+ *         - V_OF_EXTREME with len < 2
+ *         - Invalid mtype provided
+ * 
+ * @note Sets errno to:
+ *       - EINVAL if nums is NULL, len is 0, or invalid mtype
+ *       - ERANGE for mathematical domain errors
+ *       - 0 if operation succeeds
+ */
 double
 mean(const MeanType mtype, const double* nums, size_t len) {
     if (!nums || len == 0) {
@@ -240,7 +359,20 @@ mean(const MeanType mtype, const double* nums, size_t len) {
     };
 }
 
-// Variance.
+/**
+ * @brief Calculates the variance of values in an array
+ * 
+ * @param nums Pointer to the array of double values
+ * @param len Length of the array
+ * 
+ * @return double The variance of the values
+ *         NAN if nums is NULL or len is 0
+ * 
+ * @note Sets errno to:
+ *       - EINVAL if nums is NULL or len is 0
+ *       - 0 if operation succeeds
+ *       - This calculates population variance (dividing by n, not n-1)
+ */
 double
 variance(const double* nums, size_t len) {
     if (!nums || len == 0) {
@@ -253,7 +385,7 @@ variance(const double* nums, size_t len) {
     const double mean_value = mean(MeanType::ARITHMETICAL, nums, len);
     if (isnan(mean_value)) return NAN;
 
-    // numerator of variance
+    // Calculate sum of squared differences from the mean
     int vsum = 0;
     for (size_t i = 0; i < len; i++) {
         const double diff = nums[i] - mean_value;
@@ -263,7 +395,20 @@ variance(const double* nums, size_t len) {
     return vsum / len;
 }
 
-// Standard deviation.
+/**
+ * @brief Calculates the standard deviation of values in an array
+ * 
+ * @param nums Pointer to the array of double values
+ * @param len Length of the array
+ * 
+ * @return double The standard deviation (square root of variance)
+ *         NAN if nums is NULL or len is 0
+ * 
+ * @note Sets errno to:
+ *       - EINVAL if nums is NULL or len is 0
+ *       - 0 if operation succeeds
+ *       - This calculates population standard deviation
+ */
 inline double
 std_deviation(const double* nums, size_t len) {
     if (!nums || len == 0) {
@@ -279,8 +424,17 @@ std_deviation(const double* nums, size_t len) {
     return sqrt(variance_value);
 }
 
-// Range.
-// Diff of max and min value.
+/**
+ * @brief Calculates the range (max - min) of values in an array
+ * 
+ * @param nums Pointer to the array of double values
+ * @param len Length of the array
+ * 
+ * @return double The range of values (difference between max and min)
+ *         NAN if nums is NULL or len is 0
+ * 
+ * @note Inherits errno settings from min_value() and max_value()
+ */
 inline double
 range(const double* nums, size_t len) {
     const double maxv = max_value(nums, len);
@@ -291,7 +445,19 @@ range(const double* nums, size_t len) {
     return maxv - minv;
 }
 
-// Linear regression function for double values.
+/**
+ * @brief Performs linear regression on two arrays of points
+ * 
+ * @param x Pointer to the array of x coordinates
+ * @param y Pointer to the array of y coordinates
+ * @param len Length of both arrays (must be the same)
+ * 
+ * @return lineEquation Structure containing m (slope) and q (y-intercept)
+ *         representing the best-fit line y = mx + q
+ * 
+ * @note Both arrays must have the same length
+ * @note Inherits errno settings from the sum() function
+ */
 lineEquation
 linear_regression(const double* x, const double* y, size_t len) {
     const double sum_x = sum(x, len), sum_y = sum(y, len);
