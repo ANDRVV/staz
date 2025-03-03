@@ -236,7 +236,7 @@ max_value(const double* nums, size_t len) {
 /**
  * @brief Enumeration of different mean types supported by the library
  */
-enum MeanType {
+enum mean_type {
     ARITHMETICAL, /**< Arithmetic mean (average) */
     GEOMETRICAL,  /**< Geometric mean (nth root of product) */
     HARMONICAL,   /**< Harmonic mean (reciprocal of average of reciprocals) */
@@ -247,7 +247,7 @@ enum MeanType {
 /**
  * @brief Structure representing a linear equation in the form y = mx + q
  */
-struct lineEquation {
+struct line_equation {
     double m; /**< Slope of the line (coefficient of x) */
     double q; /**< Y-intercept (constant term) */
 };
@@ -312,7 +312,7 @@ median(const double* nums, size_t len) {
  *       - 0 if operation succeeds
  */
 double
-mean(const MeanType mtype, const double* nums, size_t len) {
+mean(mean_type mtype, const double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return NAN;
@@ -382,7 +382,7 @@ variance(const double* nums, size_t len) {
 
     errno = 0;
 
-    const double mean_value = mean(MeanType::ARITHMETICAL, nums, len);
+    const double mean_value = mean(mean_type::ARITHMETICAL, nums, len);
     if (isnan(mean_value)) return NAN;
 
     // Calculate sum of squared differences from the mean
@@ -458,7 +458,7 @@ range(const double* nums, size_t len) {
  * @note Both arrays must have the same length
  * @note Inherits errno settings from the sum() function
  */
-lineEquation
+line_equation
 linear_regression(const double* x, const double* y, size_t len) {
     const double sum_x = sum(x, len), sum_y = sum(y, len);
     double sum_xy = 0, sum_x_sq = 0;
@@ -471,7 +471,7 @@ linear_regression(const double* x, const double* y, size_t len) {
     const double m = (len * sum_xy - sum_x * sum_y) / (len * sum_x_sq - sum_x * sum_x);
     const double q = (sum_y - m * sum_x) / len;
 
-    return lineEquation{m, q};
+    return line_equation{m, q};
 }
 
 #endif /* STAZ_H */
