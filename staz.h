@@ -10,12 +10,12 @@
  * Documentation is provided in the /docs folder.
  */
 
- #ifndef STAZ_H
- #define STAZ_H
+#ifndef STAZ_H
+#define STAZ_H
  
- #include <stdio.h>
- #include <math.h>
- #include <errno.h>
+#include <stdio.h>
+#include <math.h>
+#include <errno.h>
  
 /**
  * @brief Compute a root of customizable index
