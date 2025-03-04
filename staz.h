@@ -543,9 +543,20 @@ quantile(measure_type mtype, const double* nums, size_t len, size_t posx) {
  * 
  * @note Both arrays must have the same length
  * @note Inherits errno settings from the sum() function
+ * 
+ * @note Sets errno to:
+ *    - EINVAL if x or y is NULL or len is 0
+ *    - 0 if operation succeeds
  */
 line_equation
 linear_regression(const double* x, const double* y, size_t len) {
+    if (!x || !y || len == 0) {
+        errno = EINVAL;
+        return {NAN, NAN};
+    }
+
+    errno = 0;
+
     const double sum_x = sum(x, len);
     const double sum_y = sum(y, len);
 
