@@ -241,7 +241,7 @@ enum mean_type {
     GEOMETRICAL,  /**< Geometric mean (nth root of product) */
     HARMONICAL,   /**< Harmonic mean (reciprocal of average of reciprocals) */
     QUADRATICAL,  /**< Quadratic mean (root mean square) */
-    V_OF_EXTREME  /**< Mean of extreme values (min and max) */
+    EXTREMES      /**< Mean of extreme values (min and max) */
 };
 
 /**
@@ -345,12 +345,12 @@ mean(mean_type mtype, const double* nums, size_t len) {
     case QUADRATICAL:
         return sqrt(quadratic_sum(nums, len) / len);
 
-    case V_OF_EXTREME: {
+    case EXTREMES: {
         if (len < 2) {
             errno = ERANGE;
             return NAN;
         }
-        
+
         return (nums[0] + nums[len - 1]) / 2.0;
     }
 
