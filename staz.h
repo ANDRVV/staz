@@ -236,21 +236,40 @@ max_value(const double* nums, size_t len) {
 /**
  * @brief Enumeration of different mean types supported by the library
  */
-enum mean_type {
-    ARITHMETICAL, /**< Arithmetic mean (average) */
-    GEOMETRICAL,  /**< Geometric mean (nth root of product) */
-    HARMONICAL,   /**< Harmonic mean (reciprocal of average of reciprocals) */
-    QUADRATICAL,  /**< Quadratic mean (root mean square) */
-    EXTREMES      /**< Mean of extreme values (min and max) */
-};
+typedef enum {
+    ARITHMETICAL, /** Arithmetic mean (average) */
+    GEOMETRICAL,  /** Geometric mean (nth root of product) */
+    HARMONICAL,   /** Harmonic mean (reciprocal of average of reciprocals) */
+    QUADRATICAL,  /** Quadratic mean (root mean square) */
+    EXTREMES      /** Mean of extreme values (min and max) */
+} mean_type;
+
+/**
+ * @brief Enumeration of different quantiles supported by the library
+ */
+typedef enum {
+    TERTILE    = 3,   /** Data divided into 3 groups */
+    QUARTILE   = 4,   /** Data divided into 4 groups */
+    QUINTILE   = 5,   /** Data divided into 5 groups */
+    SEXTILE    = 6,   /** Data divided into 6 groups */
+    SEPTILE    = 7,   /** Data divided into 7 groups */
+    OCTILE     = 8,   /** Data divided into 8 groups */
+    DECILE     = 10,  /** Data divided into 10 groups */
+    DUO_DECILE = 12,  /** Data divided into 12 groups */
+    HEXADECILE = 16,  /** Data divided into 16 groups */
+    VENTILE    = 20,  /** Data divided into 20 groups */
+    PERCENTILE = 100, /** Data divided into 100 groups */
+    PERMILLE   = 1000 /** Data divided into 1000 groups */
+} measure_type;
+
 
 /**
  * @brief Structure representing a linear equation in the form y = mx + q
  */
-struct line_equation {
-    double m; /**< Slope of the line (coefficient of x) */
-    double q; /**< Y-intercept (constant term) */
-};
+typedef struct {
+    double m; /** Slope of the line (coefficient of x) */
+    double q; /** Y-intercept (constant term) */
+} line_equation;
 
 /**
  * @brief Calculates the median value of a sorted array
@@ -467,6 +486,49 @@ mode(const double* nums, size_t len) {
     }
 
     return maxv;
+}
+
+/**
+ * @brief Calculates the quantile for a sorted numeric array
+ * 
+ * @param mtype Type of quantile division (e.g., QUARTILE, DECILE)
+ * @param nums Pointer to sorted array of double values
+ * @param len Length of the array
+ * @param posx Position of the quantile (1 to mtype-1)
+ * 
+ * @return double The calculated quantile value
+ *         NAN if input is invalid
+ *
+ * @note Sets errno to:
+ *       - EINVAL if nums is NULL or len or posx is invalid
+ *       - 0 if operation succeeds
+ * 
+ * @note Input array MUST be sorted in ascending order
+ * @note Calculates quantile using linear interpolation method
+ */
+double
+quantile(measure_type mtype, const double* nums, size_t len, size_t posx) {
+    if (!nums || len == 0 || posx < 1) {
+        errno = EINVAL;
+        return NAN;
+    }
+
+    /* Measure type must be between 1 and mtype-1 */
+    if (posx > (size_t)mtype - 1) {
+        errno = ERANGE;
+        return NAN;
+    }
+
+    errno = 0;
+
+    const double index = posx * (len + 1) / (double)mtype;
+
+    int lower = (int)index;
+
+    if (lower >= len) return nums[len - 1];
+    if (lower <= 0) return nums[0];
+
+    return nums[lower - 1] + (index - lower) * (nums[lower] - nums[lower - 1]);
 }
 
 /**
