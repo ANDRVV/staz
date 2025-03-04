@@ -350,6 +350,7 @@ mean(mean_type mtype, const double* nums, size_t len) {
             errno = ERANGE;
             return NAN;
         }
+        
         return (nums[0] + nums[len - 1]) / 2.0;
     }
 
@@ -419,9 +420,8 @@ std_deviation(const double* nums, size_t len) {
     errno = 0;
 
     const double variance_value = variance(nums, len);
-    if (isnan(variance_value)) return NAN;
 
-    return sqrt(variance_value);
+    return (isnan(variance_value)) ? NAN : sqrt(variance_value);
 }
 
 /**
@@ -440,9 +440,7 @@ range(const double* nums, size_t len) {
     const double maxv = max_value(nums, len);
     const double minv = min_value(nums, len);
 
-    if (isnan(maxv) || isnan(minv)) return NAN;
-
-    return maxv - minv;
+    return (isnan(maxv) || isnan(minv)) ? NAN : maxv - minv;
 }
 
 /**
@@ -460,7 +458,9 @@ range(const double* nums, size_t len) {
  */
 line_equation
 linear_regression(const double* x, const double* y, size_t len) {
-    const double sum_x = sum(x, len), sum_y = sum(y, len);
+    const double sum_x = sum(x, len);
+    const double sum_y = sum(y, len);
+
     double sum_xy = 0, sum_x_sq = 0;
 
     for (size_t i = 0; i < len; i++) {
