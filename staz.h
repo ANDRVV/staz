@@ -444,6 +444,32 @@ range(const double* nums, size_t len) {
 }
 
 /**
+ * @brief Calculates the mode (most frequent value) of values in an array
+ * 
+ * @param nums Pointer to the array of double values
+ * @param len Length of the array
+ */
+double
+mode(const double* nums, size_t len) {
+    double maxv = 0, maxc = 0;
+
+    for (size_t i = 0; i < len; ++i) {
+        size_t c = 0;
+
+        for (size_t j = 0; j < len; ++j) {
+            if (nums[j] == nums[i]) ++c;
+        }
+
+        if (c > maxc) {
+            maxc = c;
+            maxv = nums[i];
+        }
+    }
+
+    return maxv;
+}
+
+/**
  * @brief Performs linear regression on two arrays of points
  * 
  * @param x Pointer to the array of x coordinates
