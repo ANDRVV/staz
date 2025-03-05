@@ -290,6 +290,18 @@ typedef enum {
     GEOMETRIC,     /** Geometric range */
 } range_type;
 
+/**
+ * @brief Enum for different deviation calculation methods
+ * 
+ * Represents various approaches to measuring statistical dispersion
+ */
+typedef enum {
+    STANDARD, /** Standard deviation from mean */
+    AVERAGE,  /** Average deviation method */
+    RELATIVE, /** Relative deviation calculation */
+    MAD_AVG,  /** Mean Absolute Deviation from average */
+    MAD_MED,  /** Mean Absolute Deviation from median */
+} deviation_type;
 
 /**
  * @brief Structure representing a linear equation in the form y = mx + q
@@ -460,21 +472,21 @@ variance(double* nums, size_t len) {
 }
 
 /**
- * @brief Calculates the standard deviation of values in an array
- * 
- * @param nums Pointer to the array of double values
+ * @brief Calculates the coefficient of variation (CV)
+ *
+ * @param nums Pointer to an array of double values
  * @param len Length of the array
  * 
- * @return double The standard deviation (square root of variance)
+ * @return double The coefficient of variation (CV) as a floating-point value
  *         NAN if nums is NULL or len is 0
- * 
- * @note Sets errno to:
- *       - EINVAL if nums is NULL or len is 0
- *       - 0 if operation succeeds
- *       - This calculates population standard deviation
  */
 inline double
-std_deviation(const double* nums, size_t len) {
+coef_variation(double* nums, size_t len) {
+    return deviation(deviation_type::STANDARD, nums, len) / median(nums, len);
+}
+
+double
+deviation(deviation_type dtype, double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return NAN;
@@ -482,9 +494,44 @@ std_deviation(const double* nums, size_t len) {
 
     errno = 0;
 
-    const double variance_value = variance(nums, len);
+    switch (dtype) {
+    case STANDARD: {
+        const double variance_value = variance(nums, len);
+        return (isnan(variance_value)) ? NAN : sqrt(variance_value);
+    }
+    
+    case RELATIVE: {
+        const double sdev = deviation(deviation_type::STANDARD, nums, len);
+        const double meanv = mean(mean_type::ARITHMETICAL, nums, len);
 
-    return (isnan(variance_value)) ? NAN : sqrt(variance_value);
+        return sdev / meanv * 100;
+    }
+    
+    case MAD_AVG: {
+        const double meanv = mean(mean_type::ARITHMETICAL, nums, len);
+        double sumv = 0.0;
+
+        for (size_t i = 0; i < len; i++) {
+            sumv += abs(nums[i] - meanv);
+        }
+        
+        return sumv / len;
+    }
+
+    case MAD_MED: {
+        const double medv = median(nums, len);
+
+        for (size_t i = 0; i < len; i++) {
+            nums[i] = abs(nums[i] - medv);
+        }
+
+        return median(nums, len);
+    }
+
+    default:
+        errno = EINVAL;
+        return NAN;
+    }
 }
 
 /**
@@ -611,30 +658,6 @@ range(range_type rtype, double* nums, size_t len) {
         errno = EINVAL;
         return NAN;
     }
-}
-
-/**
- * @brief Calculates the Average Absolute Deviation (AAD)
- * 
- * @param nums Pointer to array of double values
- * @param len Length of the array
- * 
- * @return double The Average Absolute Deviation
- *         Measures average deviation from the median
- * 
- * @note AAD is a robust measure of statistical dispersion
- * @note Input array should ideally be sorted
- */
-double
-aad(const double* nums, size_t len) {
-    const double medv = median(nums, len);
-    double sumv = 0.0;
-
-    for (size_t i = 0; i < len; i++) {
-        sumv += abs(nums[i] - medv);
-    }
-
-    return sumv / len;
 }
 
 /**
