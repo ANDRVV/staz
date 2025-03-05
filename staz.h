@@ -471,20 +471,6 @@ variance(double* nums, size_t len) {
     return vsum / len;
 }
 
-/**
- * @brief Calculates the coefficient of variation (CV)
- *
- * @param nums Pointer to an array of double values
- * @param len Length of the array
- * 
- * @return double The coefficient of variation (CV) as a floating-point value
- *         NAN if nums is NULL or len is 0
- */
-inline double
-coef_variation(double* nums, size_t len) {
-    return deviation(deviation_type::STANDARD, nums, len) / median(nums, len);
-}
-
 double
 deviation(deviation_type dtype, double* nums, size_t len) {
     if (!nums || len == 0) {
@@ -504,7 +490,7 @@ deviation(deviation_type dtype, double* nums, size_t len) {
         const double sdev = deviation(deviation_type::STANDARD, nums, len);
         const double meanv = mean(mean_type::ARITHMETICAL, nums, len);
 
-        return sdev / meanv * 100;
+        return sdev / meanv;
     }
     
     case MAD_AVG: {
