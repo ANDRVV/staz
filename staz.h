@@ -589,19 +589,19 @@ range(range_type rtype, const double* nums, size_t len) {
 }
 
 /**
- * @brief Calculates the Mean Absolute Deviation (MAD)
+ * @brief Calculates the Average Absolute Deviation (AAD)
  * 
  * @param nums Pointer to array of double values
  * @param len Length of the array
  * 
- * @return double The Mean Absolute Deviation
+ * @return double The Average Absolute Deviation
  *         Measures average deviation from the median
  * 
- * @note MAD is a robust measure of statistical dispersion
+ * @note AAD is a robust measure of statistical dispersion
  * @note Input array should ideally be sorted
  */
 double
-mad(const double* nums, size_t len) {
+aad(const double* nums, size_t len) {
     const double medv = median(nums, len);
     double sumv = 0.0;
 
