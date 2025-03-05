@@ -587,6 +587,31 @@ range(range_type rtype, const double* nums, size_t len) {
         return NAN;
     }
 }
+
+/**
+ * @brief Calculates the Mean Absolute Deviation (MAD)
+ * 
+ * @param nums Pointer to array of double values
+ * @param len Length of the array
+ * 
+ * @return double The Mean Absolute Deviation
+ *         Measures average deviation from the median
+ * 
+ * @note MAD is a robust measure of statistical dispersion
+ * @note Input array should ideally be sorted
+ */
+double
+mad(const double* nums, size_t len) {
+    const double medv = median(nums, len);
+    double sumv = 0.0;
+
+    for (size_t i = 0; i < len; i++) {
+        sumv += abs(nums[i] - medv);
+    }
+
+    return sumv / len;
+}
+
 /**
  * @brief Performs linear regression on two arrays of points
  * 
