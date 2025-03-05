@@ -294,8 +294,6 @@ typedef enum {
 
 /**
  * @brief Enum for different deviation calculation methods
- * 
- * Represents various approaches to measuring statistical dispersion
  */
 typedef enum {
     STANDARD, /** Standard deviation from mean */
@@ -304,6 +302,20 @@ typedef enum {
     MAD_AVG,  /** Mean Absolute Deviation from average */
     MAD_MED,  /** Mean Absolute Deviation from median */
 } deviation_type;
+
+/**
+ * @brief Structure representing the information required to draw a boxplot.
+ */
+typedef struct {
+    double BOX_HIGH;          /** Q3 */
+    double BOX_CENTRE;        /** Median */
+    double BOX_LOW;           /** Q1 */
+    double BOX_UPPER_WHISKER; /** Q3 + 1.5 * iqr */
+    double BOX_LOWER_WHISKER; /** Q1 - 1.5 * iqr */
+    double BOX_UPPER_OUTLIER; /** max */
+    double BOX_LOWER_OUTLIER; /** min */
+} boxplot_info;
+
 
 /**
  * @brief Structure representing a linear equation in the form y = mx + q
@@ -645,6 +657,51 @@ range(range_type rtype, double* nums, size_t len) {
 }
 
 /**
+ * @brief Calculates the boxplot information for a numeric array.
+ *
+ * @param nums Pointer to the array of double values.
+ * @param len Length of the array.
+ *
+ * @return boxplot_info Structure containing the Q3, median, Q1, upper whisker, lower whisker, upper outlier, and lower outlier.//+
+ *
+ * @note Sets errno to:
+ *    - EINVAL if nums is NULL or len is 0.
+ *    - 0 if operation succeeds.
+ */
+boxplot_info
+boxplot(double* nums, size_t len) {
+    if (!nums || len == 0) {
+        errno = EINVAL;
+        return {NAN, NAN, NAN, NAN, NAN, NAN, NAN};
+    }
+
+    errno = 0;
+
+    const double q1 = quantile(measure_type::QUARTILE, nums, len, 1);
+    const double q3 = quantile(measure_type::QUARTILE, nums, len, 3);
+
+    const double med = median(nums, len);
+    const double iqr = q3 - q1;
+
+    const double upper_whisker = q3 + 1.5 * iqr;
+    const double lower_whisker = q1 - 1.5 * iqr;
+
+    const double upper_outlier = max_value(nums, len);
+    const double lower_outlier = min_value(nums, len);
+
+    return boxplot_info{
+        q3,
+        med,
+        q1,
+        upper_whisker,
+        lower_whisker,
+        upper_whisker,
+        lower_outlier
+    };
+}
+
+
+/**
  * @brief Performs linear regression on two arrays of points
  * 
  * @param x Pointer to the array of x coordinates
@@ -691,5 +748,7 @@ linear_regression(const double* x, const double* y, size_t len) {
 
     return line_equation{m, q};
 }
+
+
 
 #endif /* STAZ_H */
