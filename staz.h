@@ -258,7 +258,8 @@ typedef enum {
     HARMONICAL,   /** Harmonic mean (reciprocal of average of reciprocals) */
     QUADRATICAL,  /** Quadratic mean (root mean square) */
     EXTREMES,     /** Mean of extreme values (min and max) */
-    TRIMEAN       /** The Tukey's mean */
+    TRIMEAN,      /** The Tukey's mean */
+    MIDHINGE      /** Mean of Q1 and Q2 */
 } mean_type;
 
 /**
@@ -407,6 +408,13 @@ mean(mean_type mtype, double* nums, size_t len) {
         const double q3 = quantile(measure_type::QUARTILE, nums, len, 3);
 
         return (q1 + 2 * q2 + q3) / 4.0;
+    }
+
+    case MIDHINGE: {
+        const double q1 = quantile(measure_type::QUARTILE, nums, len, 1);
+        const double q3 = quantile(measure_type::QUARTILE, nums, len, 3);
+
+        return (q1 + q3) / 2;
     }
 
     default:
