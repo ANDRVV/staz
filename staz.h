@@ -463,25 +463,6 @@ std_deviation(const double* nums, size_t len) {
 }
 
 /**
- * @brief Calculates the range (max - min) of values in an array
- * 
- * @param nums Pointer to the array of double values
- * @param len Length of the array
- * 
- * @return double The range of values (difference between max and min)
- *         NAN if nums is NULL or len is 0
- * 
- * @note Inherits errno settings from min_value() and max_value()
- */
-inline double
-range(const double* nums, size_t len) {
-    const double maxv = max_value(nums, len);
-    const double minv = min_value(nums, len);
-
-    return (isnan(maxv) || isnan(minv)) ? NAN : maxv - minv;
-}
-
-/**
  * @brief Calculates the mode (most frequent value) of values in an array
  * 
  * @param nums Pointer to the array of double values
@@ -550,6 +531,62 @@ quantile(measure_type mtype, const double* nums, size_t len, size_t posx) {
     return nums[lower - 1] + (index - lower) * (nums[lower] - nums[lower - 1]);
 }
 
+/**
+ * @brief Calculates different types of range for a numeric array
+ * 
+ * @param rtype Type of range calculation
+ * @param nums Pointer to sorted array of double values
+ * @param len Length of the array
+ * 
+ * @return double The calculated range value
+ *         NAN if input is invalid or calculation fails
+ * 
+ * @note Input array should ideally be sorted
+ * @note Supports multiple range calculation methods
+ */
+double
+range(range_type rtype, const double* nums, size_t len) {
+    if (!nums || len == 0) {
+        errno = EINVAL;
+        return NAN;
+    }
+
+    errno = 0;
+
+    switch (rtype) {
+    case GEOMETRIC:
+    case STANDARD: {
+        const double maxv = max_value(nums, len);
+        const double minv = min_value(nums, len);
+
+        if (isnan(maxv) || isnan(minv)) {
+            return NAN;
+        } else if (rtype == range_type::GEOMETRIC) {
+            return log(maxv - log(minv));
+        } else {
+            return maxv - minv;
+        }
+    }
+
+    case INTERQUARTILE: {
+        const double q1 = quantile(measure_type::QUARTILE, nums, len, 1);
+        const double q3 = quantile(measure_type::QUARTILE, nums, len, 3);
+
+        return (isnan(q1) || isnan(q3)) ? NAN : q3 - q1;
+    }
+
+    case PERCENTILE: {
+        const double p10 = quantile(measure_type::PERCENTILE, nums, len, 10);
+        const double p90 = quantile(measure_type::PERCENTILE, nums, len, 90);
+
+        return (isnan(p10) || isnan(p90)) ? NAN : p90 - p10;
+    }
+
+    default:
+        errno = EINVAL;
+        return NAN;
+    }
+}
 /**
  * @brief Performs linear regression on two arrays of points
  * 
