@@ -299,9 +299,9 @@ typedef struct {
 } line_equation;
 
 /**
- * @brief Calculates the median value of a sorted array
+ * @brief Calculates the median value
  * 
- * @param nums Pointer to the SORTED array of double values
+ * @param nums Pointer to the array of double values
  * @param len Length of the array
  * 
  * @return double The median value of the array
@@ -359,7 +359,7 @@ median(double* nums, size_t len) {
  *       - 0 if operation succeeds
  */
 double
-mean(mean_type mtype, const double* nums, size_t len) {
+mean(mean_type mtype, double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return NAN;
@@ -430,7 +430,7 @@ mean(mean_type mtype, const double* nums, size_t len) {
  *       - This calculates population variance (dividing by n, not n-1)
  */
 double
-variance(const double* nums, size_t len) {
+variance(double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return NAN;
@@ -506,10 +506,10 @@ mode(const double* nums, size_t len) {
 }
 
 /**
- * @brief Calculates the quantile for a sorted numeric array
+ * @brief Calculates the quantile for a numeric array
  * 
  * @param mtype Type of quantile division (e.g., QUARTILE, DECILE)
- * @param nums Pointer to sorted array of double values
+ * @param nums Pointer to array of double values
  * @param len Length of the array
  * @param posx Position of the quantile (1 to mtype-1)
  * 
@@ -520,11 +520,10 @@ mode(const double* nums, size_t len) {
  *       - EINVAL if nums is NULL or len or posx is invalid
  *       - 0 if operation succeeds
  * 
- * @note Input array MUST be sorted in ascending order
  * @note Calculates quantile using linear interpolation method
  */
 double
-quantile(measure_type mtype, const double* nums, size_t len, size_t posx) {
+quantile(measure_type mtype, double* nums, size_t len, size_t posx) {
     if (!nums || len == 0 || posx < 1) {
         errno = EINVAL;
         return NAN;
@@ -537,6 +536,8 @@ quantile(measure_type mtype, const double* nums, size_t len, size_t posx) {
     }
 
     errno = 0;
+
+    qsort(nums, len, sizeof(double), comp);
 
     const double index = posx * (len + 1) / (double)mtype;
 
@@ -552,17 +553,16 @@ quantile(measure_type mtype, const double* nums, size_t len, size_t posx) {
  * @brief Calculates different types of range for a numeric array
  * 
  * @param rtype Type of range calculation
- * @param nums Pointer to sorted array of double values
+ * @param nums Pointer to array of double values
  * @param len Length of the array
  * 
  * @return double The calculated range value
  *         NAN if input is invalid or calculation fails
  * 
- * @note Input array should ideally be sorted
  * @note Supports multiple range calculation methods
  */
 double
-range(range_type rtype, const double* nums, size_t len) {
+range(range_type rtype, double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return NAN;
