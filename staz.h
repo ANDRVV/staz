@@ -241,7 +241,8 @@ typedef enum {
     GEOMETRICAL,  /** Geometric mean (nth root of product) */
     HARMONICAL,   /** Harmonic mean (reciprocal of average of reciprocals) */
     QUADRATICAL,  /** Quadratic mean (root mean square) */
-    EXTREMES      /** Mean of extreme values (min and max) */
+    EXTREMES,     /** Mean of extreme values (min and max) */
+    TRIMEAN       /** The Tukey's mean */
 } mean_type;
 
 /**
@@ -261,6 +262,16 @@ typedef enum {
     PERCENTILE = 100, /** Data divided into 100 groups */
     PERMILLE   = 1000 /** Data divided into 1000 groups */
 } measure_type;
+
+/**
+ * @brief Enumeration of different range types supported by the library
+ */
+typedef enum {
+    STANDARD,      /** Standard range */
+    INTERQUARTILE, /** Interquartile range (IQR) */
+    PERCENTILE,    /** Percentile range */
+    GEOMETRIC,     /** Geometric range */
+} range_type;
 
 
 /**
@@ -373,10 +384,18 @@ mean(mean_type mtype, const double* nums, size_t len) {
         return (nums[0] + nums[len - 1]) / 2.0;
     }
 
+    case TRIMEAN: {
+        const double q1 = quantile(measure_type::QUARTILE, nums, len, 1);
+        const double q2 = quantile(measure_type::QUARTILE, nums, len, 2);
+        const double q3 = quantile(measure_type::QUARTILE, nums, len, 3);
+
+        return (q1 + 2 * q2 + q3) / 4.0;
+    }
+
     default:
         errno = EINVAL;
         return NAN;
-    };
+    }
 }
 
 /**
