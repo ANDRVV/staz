@@ -487,10 +487,13 @@ deviation(deviation_type dtype, double* nums, size_t len) {
     }
     
     case RELATIVE: {
-        const double sdev = deviation(deviation_type::STANDARD, nums, len);
         const double meanv = mean(mean_type::ARITHMETICAL, nums, len);
+        if (isnan(meanv) || meanv == 0) {
+            errno = ERANGE;
+            return NAN;
+        }
 
-        return sdev / meanv;
+        return deviation(deviation_type::STANDARD, nums, len) / meanv;
     }
     
     case MAD_AVG: {
