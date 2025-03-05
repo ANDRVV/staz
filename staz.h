@@ -69,6 +69,22 @@ _sum_recp(const double* nums, size_t len) {
     return vsum;
 }
 
+/**
+ * @brief Comparison function for qsort to sort integers in ascending order
+ * 
+ * @param a Pointer to first integer to compare
+ * @param b Pointer to second integer to compare
+ * 
+ * @return int Negative if a < b, zero if a == b, positive if a > b
+ * 
+ * @note Designed for use with qsort() standard library function
+ * @warning Does not handle potential integer overflow from subtraction
+ */
+static inline int
+comp(const void *a, const void *b) {
+    return (*(int *)a - *(int *)b);
+}
+
 /* --- SHARED METHODS --- */
 
 /**
@@ -296,16 +312,17 @@ typedef struct {
  * @note Sets errno to:
  *       - EINVAL if nums is NULL or len is 0
  *       - 0 if operation succeeds
- *       - The array MUST be sorted before calling this function
  */
 double
-median(const double* nums, size_t len) {
+median(double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return NAN;
     }
 
     errno = 0;
+
+    qsort(nums, len, sizeof(double), comp);
 
     if (len == 1) return nums[0];
 
