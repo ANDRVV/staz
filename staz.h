@@ -70,19 +70,19 @@ _sum_recp(const double* nums, size_t len) {
 }
 
 /**
- * @brief Comparison function for qsort to sort integers in ascending order
+ * @brief Comparison function for qsort to sort doubles in ascending order
  * 
- * @param a Pointer to first integer to compare
- * @param b Pointer to second integer to compare
+ * @param a Pointer to first double to compare
+ * @param b Pointer to second double to compare
  * 
  * @return int Negative if a < b, zero if a == b, positive if a > b
  * 
  * @note Designed for use with qsort() standard library function
- * @warning Does not handle potential integer overflow from subtraction
+ * @warning Does not handle potential double overflow from subtraction
  */
 static inline int
 comp(const void *a, const void *b) {
-    return (*(int *)a - *(int *)b);
+    return (*(double *)a - *(double *)b);
 }
 
 /* --- SHARED METHODS --- */
