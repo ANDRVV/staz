@@ -82,7 +82,10 @@ _sum_recp(const double* nums, size_t len) {
  */
 static inline int
 comp(const void *a, const void *b) {
-    return (*(double *)a - *(double *)b);
+    double diff = *(const double *)a - *(const double *)b;
+    if (diff < 0) return -1;
+    if (diff > 0) return 1;
+    return 0;
 }
 
 /* --- SHARED METHODS --- */
@@ -287,7 +290,6 @@ typedef enum {
     STANDARD,      /** Standard range */
     INTERQUARTILE, /** Interquartile range (IQR) */
     PERCENTILE,    /** Percentile range */
-    GEOMETRIC,     /** Geometric range */
 } range_type;
 
 /**
@@ -411,7 +413,7 @@ mean(mean_type mtype, double* nums, size_t len) {
             return NAN;
         }
 
-        return (nums[0] + nums[len - 1]) / 2.0;
+        return (min_value(nums, len) + max_value(nums, len)) / 2.0;
     }
 
     case TRIMEAN: {
@@ -462,7 +464,7 @@ variance(double* nums, size_t len) {
     if (isnan(mean_value)) return NAN;
 
     // Calculate sum of squared differences from the mean
-    int vsum = 0;
+    double vsum = 0.0;
     for (size_t i = 0; i < len; i++) {
         const double diff = nums[i] - mean_value;
         vsum += diff * diff;
@@ -501,7 +503,7 @@ deviation(deviation_type dtype, double* nums, size_t len) {
         double sumv = 0.0;
 
         for (size_t i = 0; i < len; i++) {
-            sumv += abs(nums[i] - meanv);
+            sumv += fabs(nums[i] - meanv);
         }
         
         return sumv / len;
@@ -511,7 +513,7 @@ deviation(deviation_type dtype, double* nums, size_t len) {
         const double medv = median(nums, len);
 
         for (size_t i = 0; i < len; i++) {
-            nums[i] = abs(nums[i] - medv);
+            nums[i] = fabs(nums[i] - medv);
         }
 
         return median(nums, len);
@@ -615,18 +617,11 @@ range(range_type rtype, double* nums, size_t len) {
     errno = 0;
 
     switch (rtype) {
-    case GEOMETRIC:
     case STANDARD: {
         const double maxv = max_value(nums, len);
         const double minv = min_value(nums, len);
 
-        if (isnan(maxv) || isnan(minv)) {
-            return NAN;
-        } else if (rtype == range_type::GEOMETRIC) {
-            return log(maxv - log(minv));
-        } else {
-            return maxv - minv;
-        }
+        return (isnan(maxv) || isnan(minv)) ? NAN : maxv - minv;
     }
 
     case INTERQUARTILE: {
@@ -685,7 +680,13 @@ linear_regression(const double* x, const double* y, size_t len) {
         sum_x_sq += x[i] * x[i];
     }
 
-    const double m = (len * sum_xy - sum_x * sum_y) / (len * sum_x_sq - sum_x * sum_x);
+    const double d_of_m = len * sum_x_sq - sum_x * sum_x;
+    if (d_of_m == 0) {
+        errno = ERANGE;
+        return {NAN, NAN};
+    }
+
+    const double m = (len * sum_xy - sum_x * sum_y) / d_of_m;
     const double q = (sum_y - m * sum_x) / len;
 
     return line_equation{m, q};
