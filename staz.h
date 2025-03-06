@@ -18,6 +18,10 @@
 #include <math.h>
 #include <errno.h>
 #include <string.h>
+
+#ifdef __cplusplus
+    #include <cstddef> // for size_t
+#endif
  
 /**
  * @brief Compute a root of customizable index
@@ -25,11 +29,7 @@
  * @param x The value to compute the root of
  * @return The i-th root of x
  */
-#define sqrti(i, x) (pow(x, 1.0 / i))
-
-#ifdef __cplusplus
-    #define size_t std::size_t
-#endif
+#define sqrti(i, x) (pow((x), 1.0 / (i)))
 
 /* --- PRIVATE METHODS --- */
 
