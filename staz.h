@@ -14,8 +14,10 @@
 #define STAZ_H
  
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <errno.h>
+#include <string.h>
  
 /**
  * @brief Compute a root of customizable index
@@ -30,6 +32,33 @@
 #endif
 
 /* --- PRIVATE METHODS --- */
+
+/**
+ * @brief Creates a deep copy of an array of double values
+ * 
+ * @param nums Pointer to the source array of doubles to be copied
+ * @param len Number of elements in the array
+ * 
+ * @return double* Pointer to the newly allocated array containing copies of all elements
+ *         NULL if nums is NULL, len is 0, or if memory allocation fails
+ * 
+ * @note Sets errno to:
+ *       - ENOMEM if memory allocation fails
+ *       - Unchanged if operation succeeds or if input parameters are invalid
+ */
+static double*
+copy_array(const double* nums, size_t len) {
+    if (!nums || len == 0) return NULL;
+
+    double* copy = (double *)malloc(len * sizeof(double));
+    if (!copy) {
+        errno = ENOMEM;
+        return NULL;
+    }
+
+    memcpy(copy, nums, len * sizeof(double));
+    return copy;
+}
 
 /**
  * @brief Calculates the sum of reciprocals of all elements in an array
@@ -82,10 +111,8 @@ _sum_recp(const double* nums, size_t len) {
  */
 static inline int
 comp(const void *a, const void *b) {
-    double diff = *(const double *)a - *(const double *)b;
-    if (diff < 0) return -1;
-    if (diff > 0) return 1;
-    return 0;
+    double da = *(const double *)a, db = *(const double *)b;
+    return (da < db) ? -1 : (da > db) ? 1 : 0;
 }
 
 /* --- SHARED METHODS --- */
@@ -349,20 +376,24 @@ median(double* nums, size_t len) {
 
     errno = 0;
 
-    qsort(nums, len, sizeof(double), comp);
+    double* sorted = copy_array(nums, len);
+    if (!sorted) return NAN;
 
-    if (len == 1) return nums[0];
+    qsort(sorted, len, sizeof(double), comp);
 
-    // If we have a single middle value, return it
-    if (len % 2 != 0) {
-        return nums[len / 2];
+    double med;
+
+    if (len == 1) {
+        med = sorted[0];
+    } else if (len % 2 != 0) {
+        med = sorted[len / 2];
+    } else {
+        const size_t middle = len / 2;
+        med = (sorted[middle - 1] + sorted[middle]) / 2.0;
     }
-    
-    // Save middle as center of array
-    const size_t middle = len / 2;
 
-    // Else return average of the two middle values
-    return (nums[middle - 1] + nums[middle]) / 2.0;
+    free(sorted);
+    return med;
 }
 
 /**
@@ -429,16 +460,17 @@ mean(mean_type mtype, double* nums, size_t len) {
     }
 
     case TRIMEAN: {
-        const double q1 = quantile(measure_type::QUARTILE, nums, len, 1);
-        const double q2 = quantile(measure_type::QUARTILE, nums, len, 2);
-        const double q3 = quantile(measure_type::QUARTILE, nums, len, 3);
+
+        const double q1 = quantile(QUARTILE, nums, len, 1);
+        const double q2 = quantile(QUARTILE, nums, len, 2);
+        const double q3 = quantile(QUARTILE, nums, len, 3);
 
         return (q1 + 2 * q2 + q3) / 4.0;
     }
 
     case MIDHINGE: {
-        const double q1 = quantile(measure_type::QUARTILE, nums, len, 1);
-        const double q3 = quantile(measure_type::QUARTILE, nums, len, 3);
+        const double q1 = quantile(QUARTILE, nums, len, 1);
+        const double q3 = quantile(QUARTILE, nums, len, 3);
 
         return (q1 + q3) / 2;
     }
@@ -472,7 +504,7 @@ variance(double* nums, size_t len) {
 
     errno = 0;
 
-    const double mean_value = mean(mean_type::ARITHMETICAL, nums, len);
+    const double mean_value = mean(ARITHMETICAL, nums, len);
     if (isnan(mean_value)) return NAN;
 
     // Calculate sum of squared differences from the mean
@@ -501,17 +533,17 @@ deviation(deviation_type dtype, double* nums, size_t len) {
     }
     
     case RELATIVE: {
-        const double meanv = mean(mean_type::ARITHMETICAL, nums, len);
+        const double meanv = mean(ARITHMETICAL, nums, len);
         if (isnan(meanv) || meanv == 0) {
             errno = ERANGE;
             return NAN;
         }
 
-        return deviation(deviation_type::STANDARD, nums, len) / meanv;
+        return deviation(STANDARD, nums, len) / meanv;
     }
     
     case MAD_AVG: {
-        const double meanv = mean(mean_type::ARITHMETICAL, nums, len);
+        const double meanv = mean(ARITHMETICAL, nums, len);
         double sumv = 0.0;
 
         for (size_t i = 0; i < len; i++) {
@@ -524,11 +556,20 @@ deviation(deviation_type dtype, double* nums, size_t len) {
     case MAD_MED: {
         const double medv = median(nums, len);
 
-        for (size_t i = 0; i < len; i++) {
-            nums[i] = fabs(nums[i] - medv);
+        double* nums2 = (double *)malloc(len * sizeof(double));
+        if (!nums2) {
+            errno = ENOMEM;
+            return NAN;
         }
 
-        return median(nums, len);
+        for (size_t i = 0; i < len; i++) {
+            nums2[i] = fabs(nums[i] - medv);
+        }
+
+        const double med = median(nums2, len);
+
+        free(nums2);
+        return med;
     }
 
     default:
@@ -542,9 +583,20 @@ deviation(deviation_type dtype, double* nums, size_t len) {
  * 
  * @param nums Pointer to the array of double values
  * @param len Length of the array
+ * 
+ * @note Sets errno to:
+ *       - EINVAL if nums is NULL or len is 0
+ *       - 0 if operation succeeds
  */
 double
 mode(const double* nums, size_t len) {
+    if (!nums || len == 0) {
+        errno = EINVAL;
+        return NAN;
+    }
+
+    errno = 0;
+
     double maxv = 0, maxc = 0;
 
     for (size_t i = 0; i < len; ++i) {
@@ -595,16 +647,22 @@ quantile(measure_type mtype, double* nums, size_t len, size_t posx) {
 
     errno = 0;
 
-    qsort(nums, len, sizeof(double), comp);
+    double* sorted = copy_array(nums, len);
+    if (!sorted) return NAN;
+
+    qsort(sorted, len, sizeof(double), comp);
 
     const double index = posx * (len + 1) / (double)mtype;
 
     int lower = (int)index;
 
-    if (lower >= len) return nums[len - 1];
-    if (lower <= 0) return nums[0];
+    if (lower >= len) return sorted[len - 1];
+    if (lower <= 0) return sorted[0];
 
-    return nums[lower - 1] + (index - lower) * (nums[lower] - nums[lower - 1]);
+    double qu = sorted[lower - 1] + (index - lower) * (sorted[lower] - sorted[lower - 1]);
+
+    free(sorted);
+    return qu;
 }
 
 /**
@@ -637,15 +695,15 @@ range(range_type rtype, double* nums, size_t len) {
     }
 
     case INTERQUARTILE: {
-        const double q1 = quantile(measure_type::QUARTILE, nums, len, 1);
-        const double q3 = quantile(measure_type::QUARTILE, nums, len, 3);
+        const double q1 = quantile(QUARTILE, nums, len, 1);
+        const double q3 = quantile(QUARTILE, nums, len, 3);
 
         return (isnan(q1) || isnan(q3)) ? NAN : q3 - q1;
     }
 
     case PERCENTILE: {
-        const double p10 = quantile(measure_type::PERCENTILE, nums, len, 10);
-        const double p90 = quantile(measure_type::PERCENTILE, nums, len, 90);
+        const double p10 = quantile(PERCENTILE, nums, len, 10);
+        const double p90 = quantile(PERCENTILE, nums, len, 90);
 
         return (isnan(p10) || isnan(p90)) ? NAN : p90 - p10;
     }
@@ -677,8 +735,8 @@ boxplot(double* nums, size_t len) {
 
     errno = 0;
 
-    const double q1 = quantile(measure_type::QUARTILE, nums, len, 1);
-    const double q3 = quantile(measure_type::QUARTILE, nums, len, 3);
+    const double q1 = quantile(QUARTILE, nums, len, 1);
+    const double q3 = quantile(QUARTILE, nums, len, 3);
 
     const double med = median(nums, len);
     const double iqr = q3 - q1;
@@ -689,7 +747,7 @@ boxplot(double* nums, size_t len) {
     const double upper_outlier = max_value(nums, len);
     const double lower_outlier = min_value(nums, len);
 
-    return boxplot_info{
+    return (boxplot_info) {
         q3,
         med,
         q1,
@@ -745,7 +803,10 @@ linear_regression(const double* x, const double* y, size_t len) {
     const double m = (len * sum_xy - sum_x * sum_y) / d_of_m;
     const double q = (sum_y - m * sum_x) / len;
 
-    return line_equation{m, q};
+    return (line_equation) {
+        m,
+        q
+    };
 }
 
 #endif /* STAZ_H */
