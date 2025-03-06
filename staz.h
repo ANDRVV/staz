@@ -700,7 +700,6 @@ boxplot(double* nums, size_t len) {
     };
 }
 
-
 /**
  * @brief Performs linear regression on two arrays of points
  * 
@@ -748,7 +747,5 @@ linear_regression(const double* x, const double* y, size_t len) {
 
     return line_equation{m, q};
 }
-
-
 
 #endif /* STAZ_H */
