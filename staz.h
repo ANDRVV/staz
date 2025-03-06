@@ -316,7 +316,7 @@ typedef enum {
 typedef enum {
     STANDARD,      /** Standard range */
     INTERQUARTILE, /** Interquartile range (IQR) */
-    PERCENTILE,    /** Percentile range */
+    R_PERCENTILE,    /** Percentile range */
 } range_type;
 
 /**
