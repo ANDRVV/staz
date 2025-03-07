@@ -704,6 +704,7 @@ range(range_type rtype, double* nums, size_t len) {
     case PERCENTILE: {
         const double p10 = quantile(PERCENTILE, nums, len, 10);
         const double p90 = quantile(PERCENTILE, nums, len, 90);
+    case R_PERCENTILE: {
 
         return (isnan(p10) || isnan(p90)) ? NAN : p90 - p10;
     }
