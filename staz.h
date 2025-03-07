@@ -293,24 +293,6 @@ typedef enum {
 } mean_type;
 
 /**
- * @brief Enumeration of different quantiles supported by the library
- */
-typedef enum {
-    TERTILE    = 3,   /** Data divided into 3 groups */
-    QUARTILE   = 4,   /** Data divided into 4 groups */
-    QUINTILE   = 5,   /** Data divided into 5 groups */
-    SEXTILE    = 6,   /** Data divided into 6 groups */
-    SEPTILE    = 7,   /** Data divided into 7 groups */
-    OCTILE     = 8,   /** Data divided into 8 groups */
-    DECILE     = 10,  /** Data divided into 10 groups */
-    DUO_DECILE = 12,  /** Data divided into 12 groups */
-    HEXADECILE = 16,  /** Data divided into 16 groups */
-    VENTILE    = 20,  /** Data divided into 20 groups */
-    PERCENTILE = 100, /** Data divided into 100 groups */
-    PERMILLE   = 1000 /** Data divided into 1000 groups */
-} measure_type;
-
-/**
  * @brief Enumeration of different range types supported by the library
  */
 typedef enum {
@@ -461,16 +443,16 @@ mean(mean_type mtype, double* nums, size_t len) {
 
     case TRIMEAN: {
 
-        const double q1 = quantile(QUARTILE, nums, len, 1);
-        const double q2 = quantile(QUARTILE, nums, len, 2);
-        const double q3 = quantile(QUARTILE, nums, len, 3);
+        const double q1 = quantile(4, 1, nums, len);
+        const double q2 = quantile(4, 2, nums, len);
+        const double q3 = quantile(4, 3, nums, len);
 
         return (q1 + 2 * q2 + q3) / 4.0;
     }
 
     case MIDHINGE: {
-        const double q1 = quantile(QUARTILE, nums, len, 1);
-        const double q3 = quantile(QUARTILE, nums, len, 3);
+        const double q1 = quantile(4, 1, nums, len);
+        const double q3 = quantile(4, 3, nums, len);
 
         return (q1 + q3) / 2;
     }
@@ -618,7 +600,7 @@ mode(const double* nums, size_t len) {
 /**
  * @brief Calculates the quantile for a numeric array
  * 
- * @param mtype Type of quantile division (e.g., QUARTILE, DECILE)
+ * @param mtype Quantile division (e.g., 1000, 20, 30, 4)
  * @param nums Pointer to array of double values
  * @param len Length of the array
  * @param posx Position of the quantile (1 to mtype-1)
@@ -633,14 +615,14 @@ mode(const double* nums, size_t len) {
  * @note Calculates quantile using linear interpolation method
  */
 double
-quantile(measure_type mtype, double* nums, size_t len, size_t posx) {
+quantile(int mtype, size_t posx, double* nums, size_t len) {
     if (!nums || len == 0 || posx < 1) {
         errno = EINVAL;
         return NAN;
     }
 
     /* Measure type must be between 1 and mtype-1 */
-    if (posx > (size_t)mtype - 1) {
+    if (posx > mtype - 1) {
         errno = ERANGE;
         return NAN;
     }
@@ -695,16 +677,15 @@ range(range_type rtype, double* nums, size_t len) {
     }
 
     case INTERQUARTILE: {
-        const double q1 = quantile(QUARTILE, nums, len, 1);
-        const double q3 = quantile(QUARTILE, nums, len, 3);
+        const double q1 = quantile(4, 1, nums, len);
+        const double q3 = quantile(4, 3, nums, len);
 
         return (isnan(q1) || isnan(q3)) ? NAN : q3 - q1;
     }
 
-    case PERCENTILE: {
-        const double p10 = quantile(PERCENTILE, nums, len, 10);
-        const double p90 = quantile(PERCENTILE, nums, len, 90);
     case R_PERCENTILE: {
+        const double p10 = quantile(100, 10, nums, len);
+        const double p90 = quantile(100, 90, nums, len);
 
         return (isnan(p10) || isnan(p90)) ? NAN : p90 - p10;
     }
@@ -736,8 +717,8 @@ boxplot(double* nums, size_t len) {
 
     errno = 0;
 
-    const double q1 = quantile(QUARTILE, nums, len, 1);
-    const double q3 = quantile(QUARTILE, nums, len, 3);
+    const double q1 = quantile(4, 1, nums, len);
+    const double q3 = quantile(4, 3, nums, len);
 
     const double med = median(nums, len);
     const double iqr = q3 - q1;
