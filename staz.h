@@ -697,6 +697,93 @@ range(range_type rtype, double* nums, size_t len) {
 }
 
 /**
+ * @brief Calculates the covariance between two arrays of values
+ * 
+ * Covariance measures how much two random variables vary together.
+ * A positive value indicates that variables tend to move in the same direction,
+ * while a negative value indicates they move in opposite directions.
+ * 
+ * @param x Pointer to the first array of double values
+ * @param y Pointer to the second array of double values
+ * @param len Length of both arrays (must be the same)
+ * 
+ * @return double The covariance between the two arrays
+ *         NAN if either array is NULL or len is 0
+ * 
+ * @note Sets errno to:
+ *       - EINVAL if either array is NULL or len is 0
+ *       - 0 if operation succeeds
+ *       - This calculates population covariance (dividing by n, not n-1)
+ */
+double
+covariance(double* x, double* y, size_t len) {
+    if (!x || !y || len == 0) {
+        errno = EINVAL;
+        return NAN;
+    }
+
+    errno = 0;
+
+    const double mean_x = mean(ARITHMETICAL, x, len);
+    const double mean_y = mean(ARITHMETICAL, y, len);
+
+    double cov = 0.0;
+    
+    for (size_t i = 0; i < len; i++) {
+        cov += (x[i] - mean_x) * (y[i] - mean_y);
+    }
+    
+    return cov / len;
+}
+
+/**
+ * @brief Calculates the Pearson correlation coefficient between two arrays
+ * 
+ * Correlation coefficient measures the strength and direction of a linear 
+ * relationship between two variables. Values range from -1 to 1, where:
+ * 1  = perfect positive correlation
+ * 0  = no correlation
+ * -1 = perfect negative correlation
+ * 
+ * @param x Pointer to the first array of double values
+ * @param y Pointer to the second array of double values
+ * @param len Length of both arrays (must be the same)
+ * 
+ * @return double The correlation coefficient between the two arrays
+ *         NAN if either array is NULL or len is 0
+ *         NAN if either array has zero standard deviation
+ * 
+ * @note Sets errno to:
+ *       - EINVAL if either array is NULL or len is 0
+ *       - ERANGE if either array has zero standard deviation
+ *       - 0 if operation succeeds
+ */
+double
+correlation(double* x, double* y, size_t len) {
+    if (!x || !y || len == 0) {
+        errno = EINVAL;
+        return NAN;
+    }
+
+    errno = 0;
+
+    const double cov = covariance(x, y, len);
+    const double dev_x = deviation(STANDARD, x, len);
+    const double dev_y = deviation(STANDARD, y, len);
+
+    if (isnan(cov) || isnan(dev_x) || isnan(dev_y)) {
+        return NAN;
+    }
+
+    if (dev_x == 0.0 || dev_y == 0.0) {
+        errno = ERANGE;  // Errore: una delle deviazioni standard è zero
+        return NAN;
+    }
+
+    return cov / (dev_x * dev_y);
+}
+
+/**
  * @brief Calculates the boxplot information for a numeric array.
  *
  * @param nums Pointer to the array of double values.
