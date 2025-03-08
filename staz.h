@@ -29,7 +29,11 @@
  * @param x The value to compute the root of
  * @return The i-th root of x
  */
-#define sqrti(i, x) (pow((x), 1.0 / (i)))
+#define staz_sqrti(i, x) (pow((x), 1.0 / (i)))
+
+/* --- ERROR HANDLING --- */
+
+
 
 /* --- PRIVATE METHODS --- */
 
@@ -131,7 +135,7 @@ comp(const void *a, const void *b) {
  *       - 0 if operation succeeds
  */
 double
-sum(const double* nums, size_t len) {
+staz_sum(const double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return NAN;
@@ -163,7 +167,7 @@ sum(const double* nums, size_t len) {
  *       - 0 if operation succeeds
  */
 double
-quadratic_sum(const double* nums, size_t len) {
+staz_quadratic_sum(const double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return NAN;
@@ -196,7 +200,7 @@ quadratic_sum(const double* nums, size_t len) {
  *       - Stops calculation early if product becomes 0
  */
 double
-prod(const double* nums, size_t len) {
+staz_prod(const double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return NAN;
@@ -229,7 +233,7 @@ prod(const double* nums, size_t len) {
  *       - 0 if operation succeeds
  */
 double
-min_value(const double* nums, size_t len) {
+staz_min_value(const double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return NAN;
@@ -260,7 +264,7 @@ min_value(const double* nums, size_t len) {
  *       - 0 if operation succeeds
  */
 double
-max_value(const double* nums, size_t len) {
+staz_max_value(const double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return NAN;
@@ -350,7 +354,7 @@ typedef struct {
  *       - 0 if operation succeeds
  */
 double
-median(double* nums, size_t len) {
+staz_median(double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return NAN;
@@ -399,7 +403,7 @@ median(double* nums, size_t len) {
  *       - 0 if operation succeeds
  */
 double
-mean(mean_type mtype, double* nums, size_t len) {
+staz_mean(mean_type mtype, double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return NAN;
@@ -409,17 +413,17 @@ mean(mean_type mtype, double* nums, size_t len) {
 
     switch (mtype) {
     case ARITHMETICAL:
-        return sum(nums, len) / len;
+        return staz_sum(nums, len) / len;
 
     case GEOMETRICAL: {
-        const double prod_value = prod(nums, len);
+        const double prod_value = staz_prod(nums, len);
         if (prod_value == 0) return 0.0;
         if (prod_value < 0) {
             errno = ERANGE;
             return NAN;
         }
 
-        return sqrti(len, prod_value);
+        return staz_sqrti(len, prod_value);
     }
         
     case HARMONICAL: {
@@ -430,7 +434,7 @@ mean(mean_type mtype, double* nums, size_t len) {
     }
 
     case QUADRATICAL:
-        return sqrt(quadratic_sum(nums, len) / len);
+        return sqrt(staz_quadratic_sum(nums, len) / len);
 
     case EXTREMES: {
         if (len < 2) {
@@ -438,21 +442,21 @@ mean(mean_type mtype, double* nums, size_t len) {
             return NAN;
         }
 
-        return (min_value(nums, len) + max_value(nums, len)) / 2.0;
+        return (staz_min_value(nums, len) + staz_max_value(nums, len)) / 2.0;
     }
 
     case TRIMEAN: {
 
-        const double q1 = quantile(4, 1, nums, len);
-        const double q2 = quantile(4, 2, nums, len);
-        const double q3 = quantile(4, 3, nums, len);
+        const double q1 = staz_quantile(4, 1, nums, len);
+        const double q2 = staz_quantile(4, 2, nums, len);
+        const double q3 = staz_quantile(4, 3, nums, len);
 
         return (q1 + 2 * q2 + q3) / 4.0;
     }
 
     case MIDHINGE: {
-        const double q1 = quantile(4, 1, nums, len);
-        const double q3 = quantile(4, 3, nums, len);
+        const double q1 = staz_quantile(4, 1, nums, len);
+        const double q3 = staz_quantile(4, 3, nums, len);
 
         return (q1 + q3) / 2;
     }
@@ -478,7 +482,7 @@ mean(mean_type mtype, double* nums, size_t len) {
  *       - This calculates population variance (dividing by n, not n-1)
  */
 double
-variance(double* nums, size_t len) {
+staz_variance(double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return NAN;
@@ -486,7 +490,7 @@ variance(double* nums, size_t len) {
 
     errno = 0;
 
-    const double mean_value = mean(ARITHMETICAL, nums, len);
+    const double mean_value = staz_mean(ARITHMETICAL, nums, len);
     if (isnan(mean_value)) return NAN;
 
     // Calculate sum of squared differences from the mean
@@ -499,8 +503,32 @@ variance(double* nums, size_t len) {
     return vsum / len;
 }
 
+/**
+ * This function supports multiple deviation metrics:
+ * - Standard deviation: square root of variance
+ * - Relative deviation: standard deviation divided by mean (coefficient of variation)
+ * - Mean absolute deviation: average of absolute deviations from the mean
+ * - Median absolute deviation: median of absolute deviations from the median
+ * 
+ * @param dtype Type of deviation to calculate (from deviation_type enum)
+ * @param nums Pointer to the array of double values
+ * @param len Length of the array
+ * 
+ * @return double The calculated deviation value
+ *         NAN if:
+ *         - nums is NULL or len is 0
+ *         - RELATIVE deviation when mean equals zero
+ *         - Memory allocation fails for MAD_MED
+ *         - Invalid dtype provided
+ * 
+ * @note Sets errno to:
+ *       - EINVAL if nums is NULL, len is 0, or invalid dtype
+ *       - ERANGE for RELATIVE deviation when mean equals zero
+ *       - ENOMEM if memory allocation fails for MAD_MED
+ *       - 0 if operation succeeds
+ */
 double
-deviation(deviation_type dtype, double* nums, size_t len) {
+staz_deviation(deviation_type dtype, double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return NAN;
@@ -510,22 +538,22 @@ deviation(deviation_type dtype, double* nums, size_t len) {
 
     switch (dtype) {
     case STANDARD: {
-        const double variance_value = variance(nums, len);
+        const double variance_value = staz_variance(nums, len);
         return (isnan(variance_value)) ? NAN : sqrt(variance_value);
     }
     
     case RELATIVE: {
-        const double meanv = mean(ARITHMETICAL, nums, len);
+        const double meanv = staz_mean(ARITHMETICAL, nums, len);
         if (isnan(meanv) || meanv == 0) {
             errno = ERANGE;
             return NAN;
         }
 
-        return deviation(STANDARD, nums, len) / meanv;
+        return staz_deviation(STANDARD, nums, len) / meanv;
     }
     
     case MAD_AVG: {
-        const double meanv = mean(ARITHMETICAL, nums, len);
+        const double meanv = staz_mean(ARITHMETICAL, nums, len);
         double sumv = 0.0;
 
         for (size_t i = 0; i < len; i++) {
@@ -536,7 +564,7 @@ deviation(deviation_type dtype, double* nums, size_t len) {
     }
 
     case MAD_MED: {
-        const double medv = median(nums, len);
+        const double medv = staz_median(nums, len);
 
         double* nums2 = (double *)malloc(len * sizeof(double));
         if (!nums2) {
@@ -548,7 +576,7 @@ deviation(deviation_type dtype, double* nums, size_t len) {
             nums2[i] = fabs(nums[i] - medv);
         }
 
-        const double med = median(nums2, len);
+        const double med = staz_median(nums2, len);
 
         free(nums2);
         return med;
@@ -571,7 +599,7 @@ deviation(deviation_type dtype, double* nums, size_t len) {
  *       - 0 if operation succeeds
  */
 double
-mode(const double* nums, size_t len) {
+staz_mode(const double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return NAN;
@@ -615,7 +643,7 @@ mode(const double* nums, size_t len) {
  * @note Calculates quantile using linear interpolation method
  */
 double
-quantile(int mtype, size_t posx, double* nums, size_t len) {
+staz_quantile(int mtype, size_t posx, double* nums, size_t len) {
     if (!nums || len == 0 || posx < 1) {
         errno = EINVAL;
         return NAN;
@@ -660,7 +688,7 @@ quantile(int mtype, size_t posx, double* nums, size_t len) {
  * @note Supports multiple range calculation methods
  */
 double
-range(range_type rtype, double* nums, size_t len) {
+staz_range(range_type rtype, double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return NAN;
@@ -670,22 +698,22 @@ range(range_type rtype, double* nums, size_t len) {
 
     switch (rtype) {
     case STANDARD: {
-        const double maxv = max_value(nums, len);
-        const double minv = min_value(nums, len);
+        const double maxv = staz_max_value(nums, len);
+        const double minv = staz_min_value(nums, len);
 
         return (isnan(maxv) || isnan(minv)) ? NAN : maxv - minv;
     }
 
     case INTERQUARTILE: {
-        const double q1 = quantile(4, 1, nums, len);
-        const double q3 = quantile(4, 3, nums, len);
+        const double q1 = staz_quantile(4, 1, nums, len);
+        const double q3 = staz_quantile(4, 3, nums, len);
 
         return (isnan(q1) || isnan(q3)) ? NAN : q3 - q1;
     }
 
     case R_PERCENTILE: {
-        const double p10 = quantile(100, 10, nums, len);
-        const double p90 = quantile(100, 90, nums, len);
+        const double p10 = staz_quantile(100, 10, nums, len);
+        const double p90 = staz_quantile(100, 90, nums, len);
 
         return (isnan(p10) || isnan(p90)) ? NAN : p90 - p10;
     }
@@ -716,7 +744,7 @@ range(range_type rtype, double* nums, size_t len) {
  *       - This calculates population covariance (dividing by n, not n-1)
  */
 double
-covariance(double* x, double* y, size_t len) {
+staz_covariance(double* x, double* y, size_t len) {
     if (!x || !y || len == 0) {
         errno = EINVAL;
         return NAN;
@@ -724,8 +752,8 @@ covariance(double* x, double* y, size_t len) {
 
     errno = 0;
 
-    const double mean_x = mean(ARITHMETICAL, x, len);
-    const double mean_y = mean(ARITHMETICAL, y, len);
+    const double mean_x = staz_mean(ARITHMETICAL, x, len);
+    const double mean_y = staz_mean(ARITHMETICAL, y, len);
 
     double cov = 0.0;
     
@@ -759,7 +787,7 @@ covariance(double* x, double* y, size_t len) {
  *       - 0 if operation succeeds
  */
 double
-correlation(double* x, double* y, size_t len) {
+staz_correlation(double* x, double* y, size_t len) {
     if (!x || !y || len == 0) {
         errno = EINVAL;
         return NAN;
@@ -767,9 +795,9 @@ correlation(double* x, double* y, size_t len) {
 
     errno = 0;
 
-    const double cov = covariance(x, y, len);
-    const double dev_x = deviation(STANDARD, x, len);
-    const double dev_y = deviation(STANDARD, y, len);
+    const double cov = staz_covariance(x, y, len);
+    const double dev_x = staz_deviation(STANDARD, x, len);
+    const double dev_y = staz_deviation(STANDARD, y, len);
 
     if (isnan(cov) || isnan(dev_x) || isnan(dev_y)) {
         return NAN;
@@ -796,7 +824,7 @@ correlation(double* x, double* y, size_t len) {
  *    - 0 if operation succeeds.
  */
 boxplot_info
-boxplot(double* nums, size_t len) {
+staz_boxplot(double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = EINVAL;
         return {NAN, NAN, NAN, NAN, NAN, NAN, NAN};
@@ -804,17 +832,17 @@ boxplot(double* nums, size_t len) {
 
     errno = 0;
 
-    const double q1 = quantile(4, 1, nums, len);
-    const double q3 = quantile(4, 3, nums, len);
+    const double q1 = staz_quantile(4, 1, nums, len);
+    const double q3 = staz_quantile(4, 3, nums, len);
 
-    const double med = median(nums, len);
+    const double med = staz_median(nums, len);
     const double iqr = q3 - q1;
 
     const double upper_whisker = q3 + 1.5 * iqr;
     const double lower_whisker = q1 - 1.5 * iqr;
 
-    const double upper_outlier = max_value(nums, len);
-    const double lower_outlier = min_value(nums, len);
+    const double upper_outlier = staz_max_value(nums, len);
+    const double lower_outlier = staz_min_value(nums, len);
 
     return (boxplot_info) {
         q3,
@@ -838,7 +866,7 @@ boxplot(double* nums, size_t len) {
  *         representing the best-fit line y = mx + q
  * 
  * @note Both arrays must have the same length
- * @note Inherits errno settings from the sum() function
+ * @note Inherits errno settings from the staz_sum() function
  * 
  * @note Sets errno to:
  *    - EINVAL if x or y is NULL or len is 0
@@ -853,8 +881,8 @@ linear_regression(const double* x, const double* y, size_t len) {
 
     errno = 0;
 
-    const double sum_x = sum(x, len);
-    const double sum_y = sum(y, len);
+    const double sum_x = staz_sum(x, len);
+    const double sum_y = staz_sum(y, len);
 
     double sum_xy = 0, sum_x_sq = 0;
 
