@@ -449,7 +449,7 @@ staz_median(double* nums, size_t len) {
  * @param mtype Quantile division (e.g., 1000, 20, 30, 4)
  * @param nums Pointer to array of double values
  * @param len Length of the array
- * @param posx Position of the quantile (1 to mtype-1)
+ * @param posx Position of the quantile (range: 1 to mtype-1)
  * 
  * @return double The calculated quantile value
  *         NAN if input is invalid
