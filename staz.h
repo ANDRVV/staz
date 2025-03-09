@@ -365,7 +365,7 @@ typedef enum {
     R_STANDARD,      /** Standard range */
     R_INTERQUARTILE, /** Interquartile range (IQR) */
     R_PERCENTILE,    /** Percentile range */
-} range_type;
+} staz_range_type;
 
 /**
  * @brief Enum for different deviation calculation methods
@@ -376,7 +376,7 @@ typedef enum {
     D_RELATIVE, /** Relative deviation calculation */
     D_MAD_AVG,  /** Mean Absolute Deviation from average */
     D_MAD_MED,  /** Mean Absolute Deviation from median */
-} deviation_type;
+} staz_deviation_type;
 
 /**
  * @brief Structure representing the information required to draw a boxplot.
@@ -389,7 +389,7 @@ typedef struct {
     double BOX_LOWER_WHISKER; /** Q1 - 1.5 * iqr */
     double BOX_UPPER_OUTLIER; /** max */
     double BOX_LOWER_OUTLIER; /** min */
-} boxplot_info;
+} staz_boxplot_info;
 
 /**
  * @brief Structure representing a linear equation in the form y = mx + q
@@ -397,7 +397,7 @@ typedef struct {
 typedef struct {
     double m; /** Slope of the line (coefficient of x) */
     double q; /** Y-intercept (constant term) */
-} line_equation;
+} staz_line_equation;
 
 /**
  * @brief Calculates the median value
@@ -626,7 +626,7 @@ staz_variance(double* nums, size_t len) {
  * - Mean absolute deviation: average of absolute deviations from the mean
  * - Median absolute deviation: median of absolute deviations from the median
  * 
- * @param dtype Type of deviation to calculate (from deviation_type enum)
+ * @param dtype Type of deviation to calculate (from staz_deviation_type enum)
  * @param nums Pointer to the array of double values
  * @param len Length of the array
  * 
@@ -644,7 +644,7 @@ staz_variance(double* nums, size_t len) {
  *       - 0 if operation succeeds
  */
 double
-staz_deviation(deviation_type dtype, double* nums, size_t len) {
+staz_deviation(staz_deviation_type dtype, double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = INVALID_PARAMETERS_ERROR;
         return NAN;
@@ -766,7 +766,7 @@ staz_mode(const double* nums, size_t len) {
  *       - NAN_ERROR if a computed value is NAN
  */
 double
-staz_range(range_type rtype, double* nums, size_t len) {
+staz_range(staz_range_type rtype, double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = INVALID_PARAMETERS_ERROR;
         return NAN;
@@ -918,17 +918,17 @@ staz_correlation(double* x, double* y, size_t len) {
  * @param nums Pointer to the array of double values.
  * @param len Length of the array.
  *
- * @return boxplot_info Structure containing the Q3, median, Q1, upper whisker, lower whisker, upper outlier, and lower outlier.
+ * @return staz_boxplot_info Structure containing the Q3, median, Q1, upper whisker, lower whisker, upper outlier, and lower outlier.
  *
  * @note Sets errno to:
  *    - INVALID_PARAMETERS_ERROR if nums is NULL or len is 0.
  *    - 0 if operation succeeds.
  */
-boxplot_info
+staz_boxplot_info
 staz_boxplot(double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = INVALID_PARAMETERS_ERROR;
-        return (boxplot_info) {NAN, NAN, NAN, NAN, NAN, NAN, NAN};
+        return (staz_boxplot_info) {NAN, NAN, NAN, NAN, NAN, NAN, NAN};
     }
 
     errno = 0;
@@ -945,7 +945,7 @@ staz_boxplot(double* nums, size_t len) {
     const double upper_outlier = staz_max_value(nums, len);
     const double lower_outlier = staz_min_value(nums, len);
 
-    return (boxplot_info) {
+    return (staz_boxplot_info) {
         q3,
         med,
         q1,
@@ -974,11 +974,11 @@ staz_boxplot(double* nums, size_t len) {
  *    - ZERO_DIVISION_ERROR if divisor of m is zero
  *    - 0 if operation succeeds
  */
-line_equation
-linear_regression(const double* x, const double* y, size_t len) {
+staz_line_equation
+staz_linear_regression(const double* x, const double* y, size_t len) {
     if (!x || !y || len == 0) {
         errno = INVALID_PARAMETERS_ERROR;
-        return (line_equation) {NAN, NAN};
+        return (staz_line_equation) {NAN, NAN};
     }
 
     errno = 0;
@@ -996,13 +996,13 @@ linear_regression(const double* x, const double* y, size_t len) {
     const double d_of_m = len * sum_x_sq - sum_x * sum_x;
     if (d_of_m == 0) {
         errno = ZERO_DIVISION_ERROR;
-        return (line_equation) {NAN, NAN};
+        return (staz_line_equation) {NAN, NAN};
     }
 
     const double m = (len * sum_xy - sum_x * sum_y) / d_of_m;
     const double q = (sum_y - m * sum_x) / len;
 
-    return (line_equation) {
+    return (staz_line_equation) {
         m,
         q
     };
