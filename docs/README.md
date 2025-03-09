@@ -81,7 +81,7 @@ int main() {
     printf("Correlation: %.4f\n", correlation);
 
     // Perform linear regression
-    line_equation line = linear_regression(x, y, len);
+    staz_line_equation line = staz_linear_regression(x, y, len);
     printf("Linear Regression: y = %.2fx + %.2f\n", line.m, line.q);
 
     return 0;
