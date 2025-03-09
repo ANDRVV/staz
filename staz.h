@@ -70,7 +70,7 @@ staz_strerrno() {
         msg = "Division by zero";
         break;
     case MATH_DOMAIN_ERROR:
-        msg = "Error of domain (as index of root = 0)";
+        msg = "Error of domain (e.g., negative root)";
         break;
     case NAN_ERROR:
         msg = "Calculation with NAN numbers";
