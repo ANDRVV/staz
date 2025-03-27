@@ -356,7 +356,7 @@ typedef enum {
     EXTREMES,     /** Mean of extreme values (min and max) */
     TRIMEAN,      /** The Tukey's mean */
     MIDHINGE      /** Mean of Q1 and Q2 */
-} mean_type;
+} staz_mean_type;
 
 /**
  * @brief Enumeration of different range types supported by the library
@@ -515,7 +515,7 @@ staz_quantile(int mtype, size_t posx, double* nums, size_t len) {
  *       - 0 if operation succeeds
  */
 double
-staz_mean(mean_type mtype, double* nums, size_t len) {
+staz_mean(staz_mean_type mtype, double* nums, size_t len) {
     if (!nums || len == 0) {
         errno = INVALID_PARAMETERS_ERROR;
         return NAN;
