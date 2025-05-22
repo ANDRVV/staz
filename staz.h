@@ -48,7 +48,7 @@ typedef enum {
     UNKNOWN_ERROR
 } staz_error;
 
-inline staz_error
+staz_error
 staz_geterrno() {
     if (errno >= 0 && errno <= 6) {
         return (staz_error)errno;
