@@ -131,6 +131,38 @@ copy_array(const double* nums, size_t len) {
 }
 
 /**
+ * @brief Recursively computes the pairwise sum of elements in a double array
+ * 
+ * @param nums Pointer to the array of double values
+ * @param start Starting index of the range to be summed
+ * @param end Ending index of the range to be summed (inclusive)
+ * 
+ * @return double The sum of elements from nums[start] to nums[end]
+ * 
+ * @note This function uses pairwise recursive summation to improve
+ *       numerical accuracy compared to naive linear summation.
+ *       It does not perform parameter validation; the caller must ensure:
+ *       - nums is not NULL
+ *       - start <= end
+ *       - end is within bounds of the original array
+ */
+static double
+_staz_sum_recursive(const double* nums, size_t start, size_t end) {
+    if (start == end) {
+        return nums[start];
+    } else if (end - start == 1) {
+        return nums[start] + nums[end];
+    }
+        
+    size_t mid = start + (end - start) / 2;
+
+    double left = _staz_sum_recursive(nums, start, mid);
+    double right = _staz_sum_recursive(nums, mid + 1, end);
+
+    return left + right;
+}
+
+/**
  * @brief Calculates the Kahan sum of reciprocals of all elements in an array
  * 
  * @param nums Pointer to the array of double values
@@ -156,7 +188,7 @@ _sum_recp(const double* nums, size_t len) {
     double sum = 0.0;
     double c = 0.0;
 
-    // Compute sum of recuprocals with Kahan
+    // Compute sum of reciprocals with Kahan
     for (size_t i = 0; i < len; i++) {
         if (nums[i] == 0.0) {
             errno = ZERO_DIVISION_ERROR;
@@ -193,7 +225,7 @@ comp(const void *a, const void *b) {
 /* --- SHARED METHODS --- */
 
 /**
- * @brief Calculates the Kahan sum of all elements in an array
+ * @brief Calculates the Pairwise summation of all elements in an array
  * 
  * @param nums Pointer to the array of double values
  * @param len Length of the array
@@ -214,18 +246,7 @@ staz_sum(const double* nums, size_t len) {
 
     errno = 0;
 
-    double sum = 0.0;
-    double c = 0.0;
-
-    // Compute sum with Kahan
-    for (size_t i = 0; i < len; i++) {
-        double y = nums[i] - c;
-        double t = sum + y;
-        c = (t - sum) - y;
-        sum = t;
-    }
-
-    return sum;
+    return _staz_sum_recursive(nums, 0, len - 1);
 }
 
 /**
