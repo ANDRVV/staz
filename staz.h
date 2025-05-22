@@ -519,11 +519,18 @@ staz_quantile(int mtype, size_t posx, double* nums, size_t len) {
 
     size_t lower = (size_t)index;
 
-    if (lower >= len) return sorted[len - 1];
-    if (lower <= 0) return sorted[0];
+    if (lower >= len) {
+        const ret = sorted[len - 1];
+        free(sorted);
+        return ret;
+    }
+    if (lower <= 0) {
+        const ret = sorted[0];
+        free(sorted);
+        return ret;
+    }
 
     double qu = sorted[lower - 1] + (index - lower) * (sorted[lower] - sorted[lower - 1]);
-
     free(sorted);
     return qu;
 }
@@ -647,10 +654,10 @@ staz_variance(double* nums, size_t len) {
     double vsum = 0.0;
     for (size_t i = 0; i < len; i++) {
         const double diff = nums[i] - mean_value;
-        vsum += diff * diff;
+        nums[i] = diff * diff;
     }
 
-    return vsum / len;
+    return staz_mean(ARITHMETICAL, nums, len);
 }
 
 /**
@@ -713,32 +720,22 @@ staz_deviation(staz_deviation_type dtype, double* nums, size_t len) {
     
     case D_MAD_AVG: {
         const double meanv = staz_mean(ARITHMETICAL, nums, len);
-        double sumv = 0.0;
 
         for (size_t i = 0; i < len; i++) {
-            sumv += fabs(nums[i] - meanv);
+            nums[i] = fabs(nums[i] - meanv);
         }
         
-        return sumv / len;
+        return staz_mean(ARITHMETICAL, nums, len);
     }
 
     case D_MAD_MED: {
         const double medv = staz_median(nums, len);
 
-        double* nums2 = (double *)malloc(len * sizeof(double));
-        if (!nums2) {
-            errno = MEMORY_ALLOCATION_ERROR;
-            return NAN;
-        }
-
         for (size_t i = 0; i < len; i++) {
-            nums2[i] = fabs(nums[i] - medv);
+            nums[i] = fabs(nums[i] - medv);
         }
 
-        const double med = staz_median(nums2, len);
-
-        free(nums2);
-        return med;
+        return staz_mean(ARITHMETICAL, nums, len);
     }
 
     default:
@@ -888,13 +885,13 @@ staz_covariance(double* x, double* y, size_t len) {
         return NAN;
     }
 
-    double cov = 0.0;
+    double nums[len];
     
     for (size_t i = 0; i < len; i++) {
-        cov += (x[i] - mean_x) * (y[i] - mean_y);
+        nums[i] = (x[i] - mean_x) * (y[i] - mean_y);
     }
     
-    return cov / len;
+    return staz_mean(ARITHMETICAL, nums, len);
 }
 
 /**
