@@ -520,12 +520,12 @@ staz_quantile(int mtype, size_t posx, double* nums, size_t len) {
     size_t lower = (size_t)index;
 
     if (lower >= len) {
-        const ret = sorted[len - 1];
+        const int ret = sorted[len - 1];
         free(sorted);
         return ret;
     }
     if (lower <= 0) {
-        const ret = sorted[0];
+        const int ret = sorted[0];
         free(sorted);
         return ret;
     }
@@ -650,8 +650,6 @@ staz_variance(double* nums, size_t len) {
         return NAN;
     }
 
-    // Calculate sum of squared differences from the mean
-    double vsum = 0.0;
     for (size_t i = 0; i < len; i++) {
         const double diff = nums[i] - mean_value;
         nums[i] = diff * diff;
