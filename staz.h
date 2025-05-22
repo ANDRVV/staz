@@ -12,12 +12,16 @@
 
 #ifndef STAZ_H
 #define STAZ_H
- 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <errno.h>
 #include <string.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifdef __cplusplus
     #include <cstddef> // for size_t
@@ -127,7 +131,7 @@ copy_array(const double* nums, size_t len) {
 }
 
 /**
- * @brief Calculates the sum of reciprocals of all elements in an array
+ * @brief Calculates the Kahan sum of reciprocals of all elements in an array
  * 
  * @param nums Pointer to the array of double values
  * @param len Length of the array
@@ -149,19 +153,24 @@ _sum_recp(const double* nums, size_t len) {
 
     errno = 0;
 
-    double vsum = 0;
+    double sum = 0.0;
+    double c = 0.0;
 
-    // Sum the reciprocals of all array values
+    // Compute sum of recuprocals with Kahan
     for (size_t i = 0; i < len; i++) {
-        if (nums[i] == 0) {
+        if (nums[i] == 0.0) {
             errno = ZERO_DIVISION_ERROR;
-            return NAN; 
+            return NAN;
         }
 
-        vsum += 1.0 / nums[i];
+        double term = 1.0 / nums[i];
+        double y = term - c;
+        double t = sum + y;
+        c = (t - sum) - y;
+        sum = t;
     }
 
-    return vsum;
+    return sum;
 }
 
 /**
@@ -184,7 +193,7 @@ comp(const void *a, const void *b) {
 /* --- SHARED METHODS --- */
 
 /**
- * @brief Calculates the sum of all elements in an array
+ * @brief Calculates the Kahan sum of all elements in an array
  * 
  * @param nums Pointer to the array of double values
  * @param len Length of the array
@@ -205,14 +214,18 @@ staz_sum(const double* nums, size_t len) {
 
     errno = 0;
 
-    double vsum = 0;
+    double sum = 0.0;
+    double c = 0.0;
 
-    // Sum all values of array
+    // Compute sum with Kahan
     for (size_t i = 0; i < len; i++) {
-        vsum += nums[i];
+        double y = nums[i] - c;
+        double t = sum + y;
+        c = (t - sum) - y;
+        sum = t;
     }
 
-    return vsum;
+    return sum;
 }
 
 /**
@@ -469,7 +482,7 @@ staz_quantile(int mtype, size_t posx, double* nums, size_t len) {
     }
 
     /* Measure type must be between 1 and mtype-1 */
-    if (posx > mtype - 1) {
+    if (posx > (size_t)mtype - 1) {
         errno = RANGEOUT_ERROR;
         return NAN;
     }
@@ -483,7 +496,7 @@ staz_quantile(int mtype, size_t posx, double* nums, size_t len) {
 
     const double index = posx * (len + 1) / (double)mtype;
 
-    int lower = (int)index;
+    size_t lower = (size_t)index;
 
     if (lower >= len) return sorted[len - 1];
     if (lower <= 0) return sorted[0];
@@ -1007,5 +1020,9 @@ staz_linear_regression(const double* x, const double* y, size_t len) {
         q
     };
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* STAZ_H */
